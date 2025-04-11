@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}Shop All Ceramics{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-3">
+        <div class="card mb-4">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">Filters</h5>
+            </div>
+            <div class="card-body">
+                <form method="get">
+                    <h6 class="mb-3">Categories</h6>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="category" id="all" value="" 
+                                {% if not request.GET.category %}checked{% endif %}>
+                            <label class="form-check-label" for="all">All Categories</label>
+                        </div>
+                        {% for category in categories %}
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="category" 
+                                    id="{{ category.slug }}" value="{{ category.slug }}"
+                                    {% if request.GET.category == category.slug %}checked{% endif %}>
+                                <label class="form-check-label" for="{{ category.slug }}">
+                                    {{ category.name }}
+                                </label>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <h6 class="mb-3">Price Range</h6>
+                    <div class="mb-3">
+                        <label for="min_price" class="form-label">Min Price:</label>
+                        <input type="number" class="form-control" id="min_price" name="min_price" 
+                            value="{{ request.GET.min_price|default:'' }}" min="0">
+                    </div>
+                    <div class="mb-3">
+                        <label for="max_price" class="form-label">Max Price:</label>
+                        <input type="number" class="form-control" id="max_price" name="max_price" 
+                            value="{{ request.GET.max_price|default:'' }}" min="0">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-9">
+        <h2 class="mb-4">All Products</h2>
+        
+        {% if request.GET.category or request.GET.min_price or request.GET.max_price %}
+            <div class="mb-3">
+                <p>Filtering by: 
+                    {% if request.GET.category %}
+                        Category: <strong>{{ request.GET.category }}</strong>
+                    {% endif %}
+                    
+                    {% if request.GET.min_price %}
+                        Min Price: <strong>${{ request.GET.min_price }}</strong>
+                    {% endif %}
+                    
+                    {% if request.GET.max_price %}
+                        Max Price: <strong>${{ request.GET.max_price }}</strong>
+                    {% endif %}
+                    
+                    <a href="{% url 'product_list' %}" class="btn btn-sm btn-outline-secondary ms-2">
+                        Clear Filters
+                    </a>
+                </p>
+            </div>
+        {% endif %}
+        
+        <div class="row">
+            {% for product in products %}
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 product-card">
+                        <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <p class="card-text text-primary fw-bold">${{ product.price }}</p>
+                            <div class="d-flex justify-content-between">
+                                <a href="{% url 'product_detail' product.slug %}" class="btn btn-outline-dark">View Details</a>
+                                <form action="{% url 'add_to_cart' product.id %}" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-cart-plus"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        No products found matching your criteria.
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
